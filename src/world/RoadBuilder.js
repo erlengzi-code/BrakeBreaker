@@ -146,7 +146,9 @@ function buildCenterMarkings(curve) {
   const tangent = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
 
-  for (let u = 0.01; u < 0.995; u += 0.016) {
+  const markingCount = Math.max(1, Math.floor(curve.getLength() / 11));
+  for (let index = 0; index < markingCount; index += 1) {
+    const u = (index + 0.5) / markingCount;
     const mark = new THREE.Mesh(geometry, material);
     mark.position.copy(curve.getPointAt(u)).addScaledVector(UP, 0.18);
     tangent.copy(curve.getTangentAt(u)).normalize();

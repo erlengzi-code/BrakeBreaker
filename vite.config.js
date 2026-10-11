@@ -4,6 +4,13 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2022',
-    sourcemap: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'three-vendor': ['three'],
+        },
+      },
+    },
   },
 });

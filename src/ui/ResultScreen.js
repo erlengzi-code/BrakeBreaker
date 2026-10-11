@@ -25,14 +25,14 @@ export class ResultScreen {
     const success = snapshot.outcome === 'SUCCESS';
     const pedalBroken = snapshot.failureReason === 'PEDAL_BROKEN';
     this.card.classList.toggle('fail', !success);
-    this.kicker.textContent = success ? '下山成功 · 系统认证' : '下山失败 · 事故报告';
+    this.kicker.textContent = success ? '下山成功 · 系统认证' : '极限下坡 · 生存报告';
     this.title.textContent = getFunnyTitle(snapshot);
     this.reason.textContent = getFailureLabel(snapshot);
     this.message.textContent = success
       ? ANNOUNCEMENTS.SUCCESS
       : pedalBroken
         ? ANNOUNCEMENTS.PEDAL_BROKEN
-        : `${ANNOUNCEMENTS.OVERSPEED} ${snapshot.checkpointLabel}：${Math.round(snapshot.speedMps * 3.6)} km/h > ${snapshot.safeSpeedKmh} km/h。`;
+        : `${ANNOUNCEMENTS.OVERSPEED}车辆在${snapshot.checkpointLabel || '山路上'}驶出道路边缘。`;
     this.distance.textContent = `${Math.round(snapshot.distanceM)} m`;
     this.time.textContent = `${snapshot.elapsedSec.toFixed(1)} s`;
     this.speed.textContent = `${Math.round(snapshot.maxSpeedMps * 3.6)} km/h`;

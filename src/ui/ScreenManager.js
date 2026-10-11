@@ -6,6 +6,8 @@ export class ScreenManager {
     this.result = document.querySelector('#result-screen');
     this.breakFlash = document.querySelector('#break-flash');
     this.pedalPreview = document.querySelector('.pedal-preview');
+    this.pauseScreen = document.querySelector('#pause-screen');
+    this.pauseButton = document.querySelector('#pause-button');
   }
 
   show(name) {
@@ -17,7 +19,14 @@ export class ScreenManager {
     this.hud.classList.toggle('break-mode', name === 'break');
     this.hud.classList.toggle('crash-mode', name === 'crash');
     this.pedalPreview.classList.toggle('cinematic', name === 'break');
+    this.pauseButton.hidden = name !== 'hud';
+    if (name !== 'hud') this.setPaused(false);
     if (name !== 'break') this.pedalPreview.classList.remove('returning');
+  }
+
+  setPaused(paused) {
+    this.pauseScreen.hidden = !paused;
+    this.pauseButton.hidden = paused || this.hud.hidden || this.hud.classList.contains('break-mode') || this.hud.classList.contains('crash-mode');
   }
 
   setBreakImpact(visible) {

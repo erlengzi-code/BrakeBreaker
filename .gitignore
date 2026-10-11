@@ -13,6 +13,8 @@ dist/
 coverage/
 .vite/
 .cache/
+release/
+/视频剪辑/
 
 # Editor and operating-system files
 .vscode/

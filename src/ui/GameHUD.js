@@ -13,23 +13,30 @@ export class GameHUD {
     this.distance = document.querySelector('#distance-value');
     this.section = document.querySelector('#section-name');
     this.progress = document.querySelector('#progress-bar');
+    this.routeCard = document.querySelector('.route-card');
+    this.condition = document.querySelector('#condition-value');
     this.warning = document.querySelector('#corner-warning');
     this.safeSpeed = document.querySelector('#safe-speed');
     this.warningDistance = document.querySelector('#warning-distance');
     this.brakeFill = document.querySelector('#brake-fill');
     this.brakeTrack = document.querySelector('#brake-track');
     this.brakeStatus = document.querySelector('#brake-status');
+    this.speedCard = document.querySelector('.speed-card');
     this.hud = document.querySelector('#hud');
     this.hint = document.querySelector('#space-hint');
     this.announcement = document.querySelector('#system-announcement');
     this.announcementText = document.querySelector('#announcement-text');
   }
 
-  update(run, routeLengthM, section, upcoming) {
+  update(run, section, upcoming, maxDurability) {
     this.speed.textContent = Math.round(run.speedMps * 3.6);
-    this.distance.textContent = `${Math.round(run.distanceM)} / ${Math.round(routeLengthM)} m`;
+    this.speedCard.dataset.danger = run.speedMps * 3.6 >= 112 ? 'high' : 'normal';
+    this.distance.textContent = `${Math.round(run.distanceM)} m`;
     this.section.textContent = section.name;
-    this.progress.style.width = `${Math.min(100, (run.distanceM / routeLengthM) * 100)}%`;
+    const condition = Math.max(0, Math.min(100, Math.round(run.pedalDurability / maxDurability * 100)));
+    this.condition.textContent = `${condition}%`;
+    this.progress.style.width = `${condition}%`;
+    this.routeCard.dataset.condition = condition < 25 ? 'critical' : 'normal';
     this.brakeFill.style.width = `${run.brakeDepth * 100}%`;
     const brakeFeedback = getBrakeFeedback(run.brakeDepth);
     this.brakeTrack.dataset.level = brakeFeedback.level;
@@ -38,12 +45,12 @@ export class GameHUD {
     this.brakeStatus.textContent = brakeFeedback.label;
     this.hint.classList.toggle('faded', run.elapsedSec > 7);
 
-    const remaining = upcoming ? upcoming.distanceM - run.distanceM : Infinity;
+    const remaining = upcoming ? upcoming.startM + upcoming.lengthM * 0.25 - run.distanceM : Infinity;
     const shouldWarn = upcoming && remaining <= upcoming.warningDistanceM && remaining >= -1;
     this.warning.hidden = !shouldWarn;
     if (shouldWarn) {
       this.safeSpeed.textContent = upcoming.safeSpeedKmh;
-      this.warningDistance.textContent = `${upcoming.label} · 前方 ${Math.max(0, Math.ceil(remaining))} m`;
+      this.warningDistance.textContent = `${upcoming.name} · 前方 ${Math.max(0, Math.ceil(remaining))} m`;
     }
   }
 

@@ -40,6 +40,22 @@ document.querySelector('#exit-run-button').addEventListener('click', (event) => 
   event.currentTarget.blur();
   game.returnToMenu();
 });
+document.querySelector('#pause-button').addEventListener('click', (event) => {
+  event.currentTarget.blur();
+  game.setPaused(true);
+});
+document.querySelector('#resume-button').addEventListener('click', (event) => {
+  event.currentTarget.blur();
+  game.setPaused(false);
+});
+document.querySelector('#pause-exit-button').addEventListener('click', (event) => {
+  event.currentTarget.blur();
+  game.returnToMenu();
+});
+window.addEventListener('keydown', (event) => {
+  if (event.code !== 'KeyP' || event.repeat || event.target?.matches('input, textarea, [contenteditable]')) return;
+  if (game.togglePause()) event.preventDefault();
+});
 document.querySelector('#menu-button').addEventListener('click', (event) => {
   event.currentTarget.blur();
   diy.sync();
@@ -52,6 +68,22 @@ document.querySelector('#help-button').addEventListener('click', () => {
 
 const muteButton = document.querySelector('#mute-button');
 const volumeInput = document.querySelector('#volume-input');
+const fullscreenButton = document.querySelector('#fullscreen-button');
+fullscreenButton.addEventListener('click', async () => {
+  fullscreenButton.blur();
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (error) {
+    console.warn('当前浏览器无法切换全屏模式', error);
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  const active = Boolean(document.fullscreenElement);
+  fullscreenButton.textContent = active ? '⛶ 退出全屏' : '⛶ 全屏';
+  fullscreenButton.setAttribute('aria-label', active ? '退出全屏' : '进入全屏');
+  game.resize();
+});
 muteButton.addEventListener('click', () => {
   const muted = muteButton.getAttribute('aria-pressed') !== 'true';
   muteButton.setAttribute('aria-pressed', `${muted}`);

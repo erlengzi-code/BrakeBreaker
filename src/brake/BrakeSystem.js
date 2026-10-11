@@ -7,6 +7,19 @@ export const PEDAL_DAMAGE = Object.freeze({
   heavyPerSecond: 3.2,
 });
 
+const REFERENCE_SPEED_MPS = 35;
+const referenceHighSpeed = (REFERENCE_SPEED_MPS - 15) / 22;
+const referenceFullPressDamage = (PEDAL_DAMAGE.basePerSecond + PEDAL_DAMAGE.heavyPerSecond)
+  * (1 + referenceHighSpeed);
+
+function getFatigueScale(maxDurability, damageMultiplier) {
+  // Compress the extreme DIY combinations without erasing their relative strengths.
+  // Tune the physical build only; enchantment multipliers retain their full effect.
+  const nominalSeconds = maxDurability / (referenceFullPressDamage * damageMultiplier);
+  const tunedSeconds = Math.max(2.7, Math.min(45.8, 3.7 * nominalSeconds ** 0.44));
+  return nominalSeconds / tunedSeconds;
+}
+
 export const PEDAL_BREAK_DURATION_SEC = CINEMATICS.brakeBreakDurationSec;
 
 export function isPedalBreakCinematicComplete(elapsedSec) {
@@ -19,19 +32,27 @@ export function calculatePedalStats(build) {
   const reinforcement = REINFORCEMENTS[normalized.reinforcementId];
   const thickness = getThicknessFactors(normalized.thickness);
   const enchantment = getEnchantmentEffects(normalized.enchantmentId);
+  const buildDurability = material.durability * thickness.durabilityMultiplier
+    * reinforcement.durabilityMultiplier;
+  const buildDamageMultiplier = material.damageMultiplier * thickness.damageMultiplier
+    * reinforcement.damageMultiplier;
+  const maxDurability = buildDurability * enchantment.durability;
+  const damageMultiplier = buildDamageMultiplier * enchantment.damage;
   return Object.freeze({
-    maxDurability: material.durability * thickness.durabilityMultiplier * reinforcement.durabilityMultiplier * enchantment.durability,
-    damageMultiplier: material.damageMultiplier * thickness.damageMultiplier * reinforcement.damageMultiplier * enchantment.damage,
+    maxDurability,
+    damageMultiplier,
+    fatigueScale: getFatigueScale(buildDurability, buildDamageMultiplier),
     instantLoadLimit: material.durability * (0.6 + normalized.thickness / 100) * reinforcement.durabilityMultiplier,
     brakeMultiplier: enchantment.brake,
   });
 }
 
-export function calculatePedalDamage(pressDepth, dt, stats) {
+export function calculatePedalDamage(pressDepth, dt, stats, speedMps = 0) {
   const depth = Math.max(0, Math.min(1, pressDepth));
   if (depth === 0 || dt <= 0) return 0;
   const rate = PEDAL_DAMAGE.basePerSecond * depth + PEDAL_DAMAGE.heavyPerSecond * depth * depth;
-  return rate * stats.damageMultiplier * dt;
+  const highSpeed = Math.max(0, Math.min(1.5, (speedMps - 15) / 22));
+  return rate * (1 + highSpeed * depth * depth) * stats.damageMultiplier * stats.fatigueScale * dt;
 }
 
 export class BrakeSystem {
@@ -47,9 +68,9 @@ export class BrakeSystem {
     this.breakEventConsumed = false;
   }
 
-  update(pressDepth, dt) {
+  update(pressDepth, dt, speedMps = 0) {
     if (this.broken) return false;
-    this.durability -= calculatePedalDamage(pressDepth, dt, this.stats);
+    this.durability -= calculatePedalDamage(pressDepth, dt, this.stats, speedMps);
     if (this.durability > 0) return false;
     this.durability = 0;
     this.broken = true;

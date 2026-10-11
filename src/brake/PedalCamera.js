@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { PedalModel, getPedalPose } from './PedalBuilder.js';
+import { getGraphicsProfile } from '../utils/graphics.js';
 
 export class PedalViewport {
   constructor(canvas, build, { withFoot = false } = {}) {
     this.canvas = canvas;
     this.withFoot = withFoot;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    this.graphics = getGraphicsProfile();
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: this.graphics.antialias, alpha: true, powerPreference: 'low-power' });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.graphics.maxPixelRatio));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = withFoot ? 1.38 : 1.18;
@@ -191,7 +193,7 @@ export class PedalViewport {
   resize() {
     const width = Math.max(1, this.canvas.clientWidth || this.canvas.width || 320);
     const height = Math.max(1, this.canvas.clientHeight || this.canvas.height || 220);
-    const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+    const pixelRatio = Math.min(window.devicePixelRatio, this.graphics.maxPixelRatio);
     const targetWidth = Math.floor(width * pixelRatio);
     const targetHeight = Math.floor(height * pixelRatio);
     if (this.canvas.width !== targetWidth || this.canvas.height !== targetHeight) {

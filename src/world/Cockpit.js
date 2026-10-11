@@ -58,6 +58,39 @@ export function buildCockpit(camera) {
     spoke.rotation.z = -angle;
     wheel.add(spoke);
   });
+  const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xf0b58b, roughness: 0.95, flatShading: true });
+  const sleeveMaterial = new THREE.MeshStandardMaterial({ color: 0x253f74, roughness: 1, flatShading: true });
+  const cuffMaterial = new THREE.MeshStandardMaterial({ color: 0x1a2c50, roughness: 1 });
+  [-1, 1].forEach((side) => {
+    const hand = new THREE.Group();
+    hand.name = side < 0 ? 'Left hand gripping steering wheel' : 'Right hand gripping steering wheel';
+    const grip = new THREE.Mesh(new THREE.DodecahedronGeometry(0.145, 0), skinMaterial);
+    grip.position.set(side * 0.32, -0.015, 0.13);
+    grip.scale.set(0.9, 0.72, 0.62);
+    hand.add(grip);
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.055, 0.075), skinMaterial);
+    thumb.position.set(side * 0.22, -0.105, 0.16);
+    thumb.rotation.z = side * 0.36;
+    hand.add(thumb);
+    for (let finger = 0; finger < 3; finger += 1) {
+      const curl = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.1, 0.07), skinMaterial);
+      curl.position.set(side * (0.352 + finger * 0.014), 0.055 - finger * 0.047, 0.047);
+      hand.add(curl);
+    }
+    const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.1, 0.18, 6), skinMaterial);
+    wrist.position.set(side * 0.395, -0.155, 0.19);
+    wrist.rotation.z = side * 0.32;
+    hand.add(wrist);
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.17, 0.57, 6), sleeveMaterial);
+    sleeve.position.set(side * 0.53, -0.44, 0.28);
+    sleeve.rotation.z = side * 0.44;
+    hand.add(sleeve);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.09, 6), cuffMaterial);
+    cuff.position.set(side * 0.43, -0.22, 0.21);
+    cuff.rotation.z = side * 0.44;
+    hand.add(cuff);
+    wheel.add(hand);
+  });
   wheel.position.set(-0.45, -0.82, -1.52);
   wheel.rotation.x = Math.PI * 0.12;
   group.add(wheel);
