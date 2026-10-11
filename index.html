@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="刹车模拟器 BRAKE LAB——按住空格制动，挑战抽象盘山公路。" />
+    <title>刹车模拟器｜BRAKE LAB</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas" aria-label="3D 下山游戏画面"></canvas>
+
+      <section id="menu-screen" class="screen menu-screen">
+        <div class="menu-card">
+          <p class="eyebrow">BRAKE LAB / 非正式测试</p>
+          <h1>刹车模拟器</h1>
+          <p class="subtitle">没有刹车，只有下山</p>
+          <p class="instruction">唯一操作：<br />按住 SPACE 踩刹车。松开 SPACE 自动回弹。<br />急弯超速会飞，踏板踩断也会飞。</p>
+          <button id="start-button" class="primary-button">开始下山测试</button>
+          <button id="help-button" class="text-button">操作说明</button>
+          <div class="audio-controls" aria-label="音量控制">
+            <button id="mute-button" class="audio-button" type="button" aria-pressed="false">声音：开</button>
+            <label for="volume-input">音量</label><input id="volume-input" type="range" min="0" max="100" value="65" />
+          </div>
+          <div id="help-panel" class="help-panel" hidden>
+            车辆会自动驾驶。弯道提示出现后，把速度降到安全速度以下；到达检查线时超速会立即飞出悬崖。
+          </div>
+          <p class="stage-note">BRAKE LAB：设计踏板，绘制标志，测试下山。</p>
+        </div>
+      </section>
+
+      <section id="diy-screen" class="screen diy-screen" hidden>
+        <div class="diy-shell">
+          <header class="diy-header">
+            <div><p class="eyebrow">BRAKE LAB / P4</p><h2>踏板 DIY + 车标附魔</h2></div>
+            <p>先配踏板，再画车标。每幅画只有一次玄学抽取机会。</p>
+          </header>
+          <nav class="diy-tabs" aria-label="改装步骤">
+            <button class="diy-tab selected" type="button" data-diy-tab="pedal" aria-selected="true">01 / 踏板 DIY</button>
+            <button class="diy-tab" type="button" data-diy-tab="logo" aria-selected="false">02 / 车标附魔</button>
+          </nav>
+          <section id="pedal-tab-panel" class="diy-panel" data-diy-panel="pedal">
+            <div class="diy-preview-panel">
+              <canvas id="diy-canvas" aria-label="当前刹车踏板 3D 预览"></canvas>
+              <span class="preview-badge">LIVE 3D PREVIEW</span>
+            </div>
+            <div class="diy-controls pedal-controls">
+              <fieldset><legend>01 / 材质</legend><div id="material-options" class="choice-grid material-grid"></div></fieldset>
+              <fieldset class="thickness-field">
+                <legend>02 / 粗细</legend>
+                <div class="range-row"><span>牙签</span><input id="thickness-input" type="range" min="0" max="100" step="1" value="50" /><span>承重柱</span><output id="thickness-value">50</output></div>
+              </fieldset>
+              <fieldset><legend>03 / 加固</legend><div id="reinforcement-options" class="choice-grid reinforcement-grid"></div></fieldset>
+              <p id="diy-hint" class="diy-hint"></p>
+              <button id="to-logo-button" class="primary-button" type="button">下一步：绘制车标</button>
+            </div>
+          </section>
+          <section id="logo-tab-panel" class="diy-panel logo-panel" data-diy-panel="logo" hidden>
+            <div class="logo-canvas-panel">
+              <canvas id="logo-canvas" width="384" height="384" aria-label="手绘车标画板"></canvas>
+              <span class="preview-badge">CANVAS 2D / 384 × 384</span>
+            </div>
+            <div class="logo-controls" aria-labelledby="logo-title">
+              <div class="logo-heading">
+                <div><span>手绘车标</span><h3 id="logo-title">画完只附魔一次</h3></div>
+                <div class="logo-actions"><button id="logo-undo" class="mini-button" type="button" disabled>撤销</button><button id="logo-clear" class="mini-button" type="button">清空</button></div>
+              </div>
+              <div class="logo-tools">
+                <div><small>画笔颜色</small><div id="logo-colors" class="logo-colors" aria-label="画笔颜色"></div></div>
+                <label>笔刷粗细 <input id="logo-brush" type="range" min="3" max="24" value="10" /></label>
+                <button id="enchant-button" class="enchant-button" type="button">注入玄学能量</button>
+                <p id="enchant-status" class="enchant-status">画点什么，或者使用实验室默认标志进行附魔。</p>
+              </div>
+              <div id="enchant-result" class="enchant-result" hidden>
+                <img id="diy-logo-image" alt="本局手绘车标" />
+                <div><small>本局附魔</small><strong id="enchant-name">-</strong><p id="enchant-effect"></p></div>
+              </div>
+              <button id="drive-button" class="primary-button" disabled>先附魔，再开始下山</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="hud" class="hud" hidden>
+        <button id="exit-run-button" class="exit-run-button" type="button">退出本局</button>
+        <div class="route-card">
+          <div class="route-meta"><span id="section-name">新手坡</span><span id="distance-value">0 / 0 m</span></div>
+          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+        </div>
+        <div class="speed-card">
+          <span class="hud-label">当前速度</span>
+          <div class="speed-readout"><strong><span id="speed-value">0</span></strong><small>km/h</small></div>
+          <div class="brake-row">
+            <div class="brake-labels"><span>SPACE 制动</span><strong id="brake-status">未踩</strong></div>
+            <div id="brake-track" class="brake-track"><div id="brake-fill" class="brake-fill"></div></div>
+          </div>
+        </div>
+        <div id="corner-warning" class="corner-warning" hidden>
+          <span>⚠ 前方急弯</span>
+          <strong><b id="safe-speed">60</b> km/h</strong>
+          <small id="warning-distance">前方 120 m</small>
+        </div>
+        <div class="pedal-preview" aria-label="实时踏板特写">
+          <span>PEDAL CAM</span>
+          <canvas id="pedal-canvas" aria-label="脚踩刹车踏板的实时 3D 特写"></canvas>
+          <div id="pedal-force-meter" class="pedal-force-meter" aria-label="刹车踩踏行程">
+            <span>BRAKE FORCE <b id="pedal-force-value">0%</b></span>
+            <div class="pedal-force-track"><div id="pedal-force-fill"></div></div>
+          </div>
+          <small>LIVE / 实时同步</small>
+        </div>
+        <div id="space-hint" class="space-hint">按住 <kbd>SPACE</kbd> 踩刹车</div>
+        <div id="system-announcement" class="system-announcement" hidden><small>车机播报</small><strong id="announcement-text"></strong></div>
+        <div id="break-flash" class="break-flash" hidden><strong><b>断！</b><em>咔嚓！</em></strong><span>检测到刹车系统主动离职。</span></div>
+      </section>
+
+      <section id="result-screen" class="screen result-screen" hidden>
+        <div class="result-card">
+          <p id="result-kicker" class="eyebrow">本次下山报告</p>
+          <h2 id="result-title">下山成功</h2>
+          <p id="result-reason" class="result-reason">成功抵达山脚</p>
+          <p id="result-message"></p>
+          <dl class="stats-grid">
+            <div><dt>行驶距离</dt><dd id="result-distance">0 m</dd></div>
+            <div><dt>存活时间</dt><dd id="result-time">0.0 s</dd></div>
+            <div><dt>最高车速</dt><dd id="result-speed">0 km/h</dd></div>
+            <div><dt>踩踏次数</dt><dd id="result-presses">0</dd></div>
+          </dl>
+          <div class="result-build">
+            <span><small>材质</small><b id="result-material">-</b></span>
+            <span><small>粗细</small><b id="result-thickness">-</b></span>
+            <span><small>加固</small><b id="result-reinforcement">-</b></span>
+            <span><small>附魔</small><b id="result-enchantment">-</b></span>
+          </div>
+          <div class="result-logo"><img id="result-logo-image" alt="本局手绘车标" /><span>本局车标</span></div>
+          <button id="retry-button" class="primary-button">再来一把</button>
+          <button id="menu-button" class="text-button">重新设计踏板</button>
+        </div>
+      </section>
+
+      <div id="toast" class="toast" hidden></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

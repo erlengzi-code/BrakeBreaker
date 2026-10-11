@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.npm-cache/
+*.log
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
+
+# Test and tooling output
+coverage/
+.vite/
+.cache/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
